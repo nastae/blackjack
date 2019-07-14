@@ -3,7 +3,7 @@ class Player:
         self.name = name
         self.hand = []
     
-    def take_card(self, deck):
+    def hit(self, deck):
         if len(deck) == 0:
             raise Exception('Deck is empty!')
         card = deck[0]
@@ -11,9 +11,6 @@ class Player:
         self.hand.append(card)
         del deck[0]
         return card
-    
-    def getHand(self):
-        return self.hand
 
     def countHandValue(self):
         value = 0
@@ -22,10 +19,10 @@ class Player:
                 value += int(card)
             if card in ['B', 'Q', 'K']:
                 value += 10
-        value += self.countAceValueInHand(value)
+        value += self.countAcesValue(value)
         return value
 
-    def countAceValueInHand(self, valueWithoutAces):
+    def countAcesValue(self, valueWithoutAces):
         aceCount = self.hand.count('A')
         if aceCount == 1:
             if valueWithoutAces + 11 > 21:
@@ -49,42 +46,45 @@ class Player:
                 return 14
         return 0
 
-    def getName(self):
-        return self.name
-
     def play(self, deck, display):
-        selection = self.__selectAction()
-        handValue = self.countHandValue()
-        while selection != 's' and handValue <= 21:
-            if selection == 'a':
-                self.take_card(deck)
+        option = self.__choosePlay()
+        value = self.countHandValue()
+        while option != 's' and value <= 21:
+            if option == 'h':
+                self.hit(deck)
                 display.print_hands([self])
-            handValue = self.countHandValue()
-            if handValue > 21:
-                print('Game ended!')
-                print('Your total value of the hand is', handValue, '!', 'You lost the game!')
-                return None
+            value = self.countHandValue()
+            if value > 21:
+                print("{sep}\nTotal value of your hand is {value}!\nYou lost!\n{sep}\n".format(
+                    sep='-' * 16,
+                    value=value))
             else:
-                selection = self.__selectAction()
-        return handValue
+                option = self.__choosePlay()
+        return value
 
-    def __selectAction(self):
-        selection_text = 'Select a move by typing a key and pressing Enter. Type an "a" to ask, a "s" to stand: '
-        selection = input(selection_text)
-        while selection not in ['a', 's']:
-            print('The selected key is incorrect. Try again!')
-            selection = input(selection_text)
-        return selection
+    def __choosePlay(self):
+        choosing_text = 'Choose a play, type whether "s" to stand or "h" (hit) to ask for another card: '
+        option = input(choosing_text)
+        while option not in ['h', 's']:
+            print('The chosen key is incorrect. Try again!')
+            option = input(choosing_text)
+        return option
+
+    def getHand(self):
+        return self.hand
+
+    def getName(self):
+         return self.name
 
 class Dealer(Player):
     def play(self, deck, display):
-        handValue = self.countHandValue()
-        while handValue < 17:
-            self.take_card(deck)
-            handValue = self.countHandValue()
-            if handValue > 21:
-                print('Game ended!')
-                print('Dealer total value of the hand is', handValue, '!', 'You won the game!')
-                return None
+        value = self.countHandValue()
+        while value < 17:
+            self.hit(deck)
+            value = self.countHandValue()
+            if value > 21:
+                print("{sep}\nTotal value of dealer's hand is {value}!\nYou won!\n{sep}\n".format(
+                    sep='-' * 16,
+                    value=value))
         display.print_hands([self])
-        return handValue
+        return value
