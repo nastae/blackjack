@@ -1,7 +1,6 @@
 from .models import Game, Card
 import modules.generate_card as generate
-import modules.response_utils as utils
-
+import modules.response_utils as response
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -12,10 +11,14 @@ def card(request):
                     to_dealer=request.POST.get('toDealer'),
                     type=generate.type(),
                     value=generate.value())
+        print('Before save')
+        print(card)
         card.save()
-        return utils.card_response(card)
+        print('After save')
+        print(card)
+        return response.card_response(card)
     else:
-        return utils.error_response()
+        return response.error_response()
 
 
 @csrf_exempt
@@ -28,12 +31,22 @@ def game(request):
         if params.get('bet') is not None:
             game.bet = params.get('bet')
         game.save()
-        return utils.game_response(game)
+        return response.game_response(game)
     elif request.method == "POST":
         params = request.POST
         game = Game(player=params.get('player'),
                     bet=params.get('bet'))
         game.save()
-        return utils.game_response(game)
+        return response.game_response(game)
     else:
-        return utils.error_response()
+        return response.error_response()
+
+
+@csrf_exempt
+def total(request):
+    if request.method == "GET":
+        cards = Card.objects.filter(game=request.GET.get('gameId'),
+                                    to_dealer=request.GET.get('toDealer'))
+        return response.total_response(cards)
+    else:
+        return response.error_response()

@@ -1,4 +1,5 @@
 from django.http import JsonResponse
+import modules.card_utils as card_utils
 
 
 def game_response(game):
@@ -15,6 +16,10 @@ def card_response(card):
         'type': card.type,
         'value': card.value
     })
+
+
+def total_response(cards):
+    return JsonResponse({'total': card_utils.sum_cards(cards)})
 
 
 def error_response():
